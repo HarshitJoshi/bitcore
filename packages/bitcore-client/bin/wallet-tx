@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env node --inspect-brk
 
 const program = require('../lib/program');
 const Wallet = require('../lib/wallet');
@@ -10,7 +10,7 @@ program
     '--recipients <recipients>',
     'REQUIRED - JSON array \'[{"address": "abc1234", "amount": xxxxxx}]\''
   )
-  .option('--utxos <utxos>', 'REQUIRED - Unspent transactions that can be spent')
+  // .option('--utxos <utxos>', 'REQUIRED - Unspent transactions that can be spent')
   .option('--change <change>', 'REQUIRED - Change addresses')
   .option('--fee [fee]', 'optional - custom transaction fee to pay')
   .option('--target [target]', 'optional - custom target block for confirmation')
@@ -21,15 +21,38 @@ const main = async () => {
   const { name, path } = program;
   let wallet;
   try {
-    const { recipients, utxos, change, fee, target } = program;
+    const { recipients, change, fee, target } = program;
     wallet = await Wallet.loadWallet({ name, path });
+
+    const utxos = await wallet.getUtxos();
+    console.log(typeof(utxos));
+    console.log(utxos.includes('['));
+
+    console.log(utxos.length);
+    // console.log(utxos);
+    // console.log(recipients);
+
+    // utxo array from getUtxos contains these Utxos, from these you ought to pick
+    // utxos t
+    //
+    const x = utxos.sort((a, b) => {
+      return b.value - a.value;
+    });
+
+
+    // console.log(JSON.stringify(utxos));
 
     const parsedUtxos = utxos.includes('[') ? JSON.parse(utxos) : [];
     const parsedRecipients = recipients.includes('[') ? JSON.parse(recipients) : [];
 
-    if (!parsedRecipients.length || !parsedUtxos.length) {
-      throw new Error('invalid arguments');
-    }
+    console.log(parsedRecipients);
+
+    // console.log(parsedUtxos);
+    // console.log(parsedRecipients);
+
+    // if (!parsedRecipients.length || !parsedUtxos.length) {
+    //   throw new Error('invalid arguments');
+    // }
 
     const utxoBytes = 148;
     const outputBytes = 34;
